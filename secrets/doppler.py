@@ -18,6 +18,7 @@ def _get_secret(name: str):
         ) as r:
             res = r.json()
         return res["value"]["raw"]
+
     return _get
 
 
