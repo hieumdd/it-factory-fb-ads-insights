@@ -6,6 +6,9 @@ BQ_CLIENT = bigquery.Client()
 
 DATASET = "Facebook"
 
+def _batched_at_schema(schema: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    return schema + [{"name": "_batched_at", "type": "TIMESTAMP"}]
+
 
 def load(
     table: str,
@@ -24,7 +27,7 @@ def load(
                 job_config=bigquery.LoadJobConfig(
                     create_disposition="CREATE_IF_NEEDED",
                     write_disposition="WRITE_APPEND",
-                    schema=schema,
+                    schema=_batched_at_schema(schema),
                 ),
             )
             .result()

@@ -1,4 +1,4 @@
-from typing import Optional, Union
+from typing import Optional, Union, Any
 from datetime import datetime, timedelta
 
 from compose import compose
@@ -10,7 +10,7 @@ from db.bigquery import load
 DATE_FORMAT = "%Y-%m-%d"
 
 
-def timeframe_service(
+def _timeframe_service(
     start: Optional[str],
     end: Optional[str],
 ) -> tuple[datetime, datetime]:
@@ -19,6 +19,14 @@ def timeframe_service(
         if not start
         else datetime.strptime(start, DATE_FORMAT)
     ), datetime.utcnow() if not end else datetime.strptime(end, DATE_FORMAT)
+
+def _batched_at_service(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    return [
+        {
+            **row,
+            "_batched_at": datetime.utcnow().isoformat(timespec='seconds'),
+        } for row in rows
+    ]
 
 
 def pipeline_service(pipeline: AdsInsights):
@@ -36,11 +44,12 @@ def pipeline_service(pipeline: AdsInsights):
                 "output_rows": x,
             },
             load(pipeline.name, pipeline.schema, pipeline.id_key, ads_account_id),
+            _batched_at_service,
             pipeline.transform,
             get(pipeline.level, pipeline.fields, pipeline.breakdowns),
         )(
             ads_account_id,
-            *timeframe_service(start, end),
+            *_timeframe_service(start, end),
         )
 
     return run
