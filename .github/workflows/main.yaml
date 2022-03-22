@@ -12,7 +12,7 @@ concurrency: ${{ github.ref }}
 env:
   ENV_KEY: env-vars
   ENV_FILE: env.yaml
-  GCP_SA: it-factory-2021@appspot.gserviceaccount.com
+  GCP_SA: etl-589@it-factory-2021.iam.gserviceaccount.com
 
 jobs:
   set-env:
