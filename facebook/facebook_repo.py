@@ -10,10 +10,9 @@ from secrets.doppler import get_access_token
 
 API_VER = "v13.0"
 BASE_URL = f"https://graph.facebook.com/{API_VER}/"
-ACCESS_TOKEN = get_access_token()
 
 
-def _request_async_report(session: requests.Session):
+def _request_async_report(session: requests.Session, token: str):
     def _request(
         level: str,
         fields: list[str],
@@ -23,7 +22,7 @@ def _request_async_report(session: requests.Session):
         end: datetime,
     ) -> str:
         params = {
-            "access_token": ACCESS_TOKEN,
+            "access_token": token,
             "level": level,
             "fields": json.dumps(fields),
             "action_attribution_windows": json.dumps(
@@ -81,11 +80,11 @@ def _request_async_report(session: requests.Session):
     return _request
 
 
-def _poll_async_report(session: requests.Session):
+def _poll_async_report(session: requests.Session, token: str):
     def _poll(report_run_id: str) -> str:
         with session.get(
             f"{BASE_URL}/{report_run_id}",
-            params={"access_token": ACCESS_TOKEN},
+            params={"access_token": token},
         ) as r:
             res = r.json()
         if (
@@ -102,13 +101,13 @@ def _poll_async_report(session: requests.Session):
     return _poll
 
 
-def _get_insights(session: requests.Session):
+def _get_insights(session: requests.Session, token: str):
     def _get(report_run_id):
         def __get(after: str = None) -> list[dict[str, Any]]:
             with session.get(
                 f"{BASE_URL}/{report_run_id}/insights",
                 params={
-                    "access_token": ACCESS_TOKEN,
+                    "access_token": token,
                     "limit": 500,
                     "after": after,
                 },
@@ -130,10 +129,11 @@ def get(level: str, fields: list[str], breakdowns: Optional[str]):
         end: datetime,
     ) -> list[dict[str, Any]]:
         with requests.Session() as session:
+            token = get_access_token()
             return compose(
-                _get_insights(session),
-                _poll_async_report(session),
-                _request_async_report(session),
+                _get_insights(session, token),
+                _poll_async_report(session, token),
+                _request_async_report(session, token),
             )(
                 level,
                 fields,
