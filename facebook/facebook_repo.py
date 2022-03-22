@@ -6,7 +6,7 @@ import time
 import requests
 from compose import compose
 
-from secrets.doppler import get_access_token
+from secret_manager.doppler import get_access_token
 
 API_VER = "v13.0"
 BASE_URL = f"https://graph.facebook.com/{API_VER}/"

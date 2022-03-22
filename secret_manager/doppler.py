@@ -6,7 +6,7 @@ BASE_URL = "https://api.doppler.com/v3/configs/config/secret"
 
 
 def _get_secret(name: str):
-    def _get():
+    def _get() -> str:
         with requests.get(
             BASE_URL,
             params={
