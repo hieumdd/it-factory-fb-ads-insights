@@ -12,7 +12,7 @@ API_VER = "v13.0"
 BASE_URL = f"https://graph.facebook.com/{API_VER}/"
 
 
-def _request_async_report(session: requests.Session, token: str):
+def _request_async_report(session: requests.Session):
     def _request(
         level: str,
         fields: list[str],
@@ -22,7 +22,6 @@ def _request_async_report(session: requests.Session, token: str):
         end: datetime,
     ) -> str:
         params = {
-            "access_token": token,
             "level": level,
             "fields": json.dumps(fields),
             "action_attribution_windows": json.dumps(
@@ -74,17 +73,17 @@ def _request_async_report(session: requests.Session, token: str):
             f"{BASE_URL}/act_{ads_account_id}/insights",
             params=params,
         ) as r:
+            r.raise_for_status()
             res = r.json()
         return res["report_run_id"]
 
     return _request
 
 
-def _poll_async_report(session: requests.Session, token: str):
+def _poll_async_report(session: requests.Session):
     def _poll(report_run_id: str) -> str:
         with session.get(
             f"{BASE_URL}/{report_run_id}",
-            params={"access_token": token},
         ) as r:
             res = r.json()
         if (
@@ -101,13 +100,12 @@ def _poll_async_report(session: requests.Session, token: str):
     return _poll
 
 
-def _get_insights(session: requests.Session, token: str):
+def _get_insights(session: requests.Session):
     def _get(report_run_id):
         def __get(after: str = None) -> list[dict[str, Any]]:
             with session.get(
                 f"{BASE_URL}/{report_run_id}/insights",
                 params={
-                    "access_token": token,
                     "limit": 500,
                     "after": after,
                 },
@@ -129,11 +127,13 @@ def get(level: str, fields: list[str], breakdowns: Optional[str]):
         end: datetime,
     ) -> list[dict[str, Any]]:
         with requests.Session() as session:
-            token = get_access_token()
+            session.params = {
+                "access_token": get_access_token(),
+            }
             return compose(
-                _get_insights(session, token),
-                _poll_async_report(session, token),
-                _request_async_report(session, token),
+                _get_insights(session),
+                _poll_async_report(session),
+                _request_async_report(session),
             )(
                 level,
                 fields,
