@@ -10,7 +10,7 @@ def main(request):
 
     if "table" in data and "ads_account_id" in data:
         fn = facebook_controller
-    if "task" in data:
+    elif "task" in data:
         fn = tasks_service
     else:
         raise ValueError(data)
