@@ -20,7 +20,7 @@ def load(
         output_rows = (
             BQ_CLIENT.load_table_from_json(
                 data,
-                f"{DATASET}.{table}",
+                f"{DATASET}.{table}_{ads_account_id}",
                 job_config=bigquery.LoadJobConfig(
                     create_disposition="CREATE_IF_NEEDED",
                     write_disposition="WRITE_APPEND",
