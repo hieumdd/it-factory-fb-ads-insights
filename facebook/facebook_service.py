@@ -20,12 +20,14 @@ def _timeframe_service(
         else datetime.strptime(start, DATE_FORMAT)
     ), datetime.utcnow() if not end else datetime.strptime(end, DATE_FORMAT)
 
+
 def _batched_at_service(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return [
         {
             **row,
-            "_batched_at": datetime.utcnow().isoformat(timespec='seconds'),
-        } for row in rows
+            "_batched_at": datetime.utcnow().isoformat(timespec="seconds"),
+        }
+        for row in rows
     ]
 
 
